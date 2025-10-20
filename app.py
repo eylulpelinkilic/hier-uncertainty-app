@@ -9,10 +9,10 @@ from scipy.stats import zscore
 import pandas as pd
 
 #not to let restart tsne each time
-    @st.cache_data
-    def compute_tsne(X_train_std, perplexity):
-        tsne = TSNE(n_components=2, perplexity=perplexity, random_state=42)
-        return tsne.fit_transform(X_train_std)
+@st.cache_data
+def compute_tsne(X_train_std, perplexity):
+    tsne = TSNE(n_components=2, perplexity=perplexity, random_state=42)
+    return tsne.fit_transform(X_train_std)
 
 st.set_page_config(page_title="Hierarchical Uncertainty Visualization", layout="wide")
 st.title("Hierarchical Uncertainty Visualization (Demo)")
