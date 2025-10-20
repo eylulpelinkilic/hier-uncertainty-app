@@ -170,7 +170,7 @@ if submitted:
            label="New Patient (Eq.8)")
 
     st.success("✅ New patient added and projected into diagnostic landscape.")
-    st.caption("Feature-level uncertainty computed per Eq.(8) — entropy × atypicality × divergence weighting.")
+    st.caption("Feature-level uncertainty computed per Eq.(8) — entropy * atypicality * divergence weighting.")
 
 
 
