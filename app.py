@@ -173,8 +173,8 @@ if submitted:
     #not to let restart tsne each time
     @st.cache_data
     def compute_tsne(X_train_std, perplexity):
-    tsne = TSNE(n_components=2, perplexity=perplexity, random_state=42)
-    return tsne.fit_transform(X_train_std)
+        tsne = TSNE(n_components=2, perplexity=perplexity, random_state=42)
+        return tsne.fit_transform(X_train_std)
 
     X_train_emb = compute_tsne(X_train_std, params["perplexity"])
     new_pt_emb = X_train_emb[idx.flatten()]
