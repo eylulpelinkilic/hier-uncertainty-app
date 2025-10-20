@@ -65,11 +65,11 @@ with tabs[1]:
 
 # ------------- LAB RESULTS -------------
 with tabs[2]:
-    trop = st.number_input("Troponin (ng/mL)", 0.0, 10.0, 0.3)
-    crp = st.number_input("CRP (mg/L)", 0.0, 100.0, 10.0)
-    bnp = st.number_input("BNP", 0.0, 2000.0, 150.0)
-    hdl = st.number_input("HDL", 0.0, 100.0, 50.0)
-    ldl = st.number_input("LDL", 0.0, 250.0, 120.0)
+    trop = st.number_input("Troponin (ng/mL)", 0.0, 10.0, value=None, placeholder="Enter value")
+    crp = st.number_input("CRP (mg/L)", 0.0, 100.0, value=None, placeholder="Enter value")
+    bnp = st.number_input("BNP", 0.0, 2000.0, value=None, placeholder="Enter value")
+    hdl = st.number_input("HDL", 0.0, 100.0, value=None, placeholder="Enter value")
+    ldl = st.number_input("LDL", 0.0, 250.0, value=None, placeholder="Enter value")
 
 # ------------- ECG -------------
 with tabs[3]:
