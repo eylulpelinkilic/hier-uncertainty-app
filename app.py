@@ -118,9 +118,12 @@ if submitted:
         "CONFIRMED DIAGNOSIS": np.nan  
     }
 
-    # Validation: none should be None or blank
-    missing_fields = [k for k, v in new_patient.items()
-                      if v is None or (isinstance(v, (int, float)) and np.isnan(v))]
+    missing_fields = [
+        k for k, v in new_patient.items()
+        if k != "CONFIRMED DIAGNOSIS"  # ignore label
+        and (v is None or (isinstance(v, (int, float)) and np.isnan(v)))
+        ]
+
 
     # to validate if user wants to fill missing values by mean
     if missing_fields:
