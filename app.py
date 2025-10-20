@@ -89,7 +89,7 @@ with tabs[5]:
 submitted = st.button("💡 Compute Uncertainty and Visualize")
 
 if submitted:
-    # Build new patient dict (only numeric/categorical -> numeric)
+    # Build new patient dict (all required)
     new_patient = {
         "AGE": age,
         "TROPONIN": trop,
@@ -110,8 +110,29 @@ if submitted:
         "ECG_ST_depression": int(st_depression),
         "ECG_T_neg": int(t_neg),
         "ECG_Q_waves": int(q_wave),
-        "CONFIRMED DIAGNOSIS": 0  # placeholder
+        "CONFIRMED DIAGNOSIS": np.nan  
     }
+
+    # Validation: none should be None or blank
+    missing_fields = [k for k, v in new_patient.items()
+                      if v is None or (isinstance(v, (int, float)) and np.isnan(v))]
+
+    # to validate if user wants to fill missing values by mean
+    if missing_fields:
+        st.warning(f"⚠️ Some values are missing: {', '.join(missing_fields)}")
+        fill_choice = st.radio(
+            "Do you want to fill missing values with the feature mean?",
+            ("No, stop the process", "Yes, fill with mean values"),
+            horizontal=True
+        )
+
+        if fill_choice == "No, stop the process":
+            st.stop()
+        else:
+            for f in missing_fields:
+                new_patient[f] = df[f].mean()
+            st.info("Missing values have been filled with mean values.")
+
 
     # Run uncertainty pipeline on current dataset
     from hier_uncertainty import compute_uncertainty_matrix
@@ -148,8 +169,14 @@ if submitted:
 
     # --- compute t-SNE embedding for visualization ---
     from sklearn.manifold import TSNE
-    tsne = TSNE(n_components=2, perplexity=params["perplexity"], random_state=42)
-    X_train_emb = tsne.fit_transform(X_train_std)
+
+    #not to let restart tsne each time
+    @st.cache_data
+    def compute_tsne(X_train_std, perplexity):
+    tsne = TSNE(n_components=2, perplexity=perplexity, random_state=42)
+    return tsne.fit_transform(X_train_std)
+
+    X_train_emb = compute_tsne(X_train_std, params["perplexity"])
     new_pt_emb = X_train_emb[idx.flatten()]
 
 
