@@ -126,7 +126,7 @@ if submitted:
             new_patient[f] = df_train[f].mean()
 
     # -------------- Eq.(8) uncertainty computation --------------
-    st.info("Computing uncertainty using Eq.(8):  x_pf = H_f × z_pf / (D_JS + ε)")
+    st.info("Computing uncertainty using Eq.(8):  x_pf = H_f * z_pf / (D_JS + ε)")
 
     xp_f = []
     for f in num_cols:
