@@ -1,6 +1,8 @@
-streamlit
+streamlit==1.49.0
+markdown-it-py==3.0.0
 numpy
 pandas
 matplotlib
 scikit-learn
+scipy
 openpyxl
