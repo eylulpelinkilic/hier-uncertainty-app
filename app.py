@@ -136,7 +136,10 @@ if submitted:
         else:
             for f in missing_fields:
                 new_patient[f] = df[f].mean()
-            st.info("Missing values have been filled with mean values.")
+            st.success(f"✅ Missing fields have been filled with mean values: {', '.join(missing_fields)}")
+
+            # Rerun the app to continue with updated patient data
+            st.experimental_rerun()
 
 
     # Run uncertainty pipeline on current dataset
