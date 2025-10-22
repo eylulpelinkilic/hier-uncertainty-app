@@ -51,44 +51,63 @@ st.subheader("🧍 Add New Patient (Modular Data Entry)")
 tabs = st.tabs(["Demographics", "Symptoms", "Lab Results", "ECG", "Imaging", "Risk Factors"])
 
 # ------------- DEMOGRAPHICS -------------
+# ------------- DEMOGRAPHICS -------------
 with tabs[0]:
-    age = st.number_input("AGE", 0, 100, 50)
+    age = st.number_input("AGE", min_value=0, max_value=100, value=50)
     gender = st.selectbox("Gender", ["Male", "Female"])
     socioeconomic = st.selectbox("Socioeconomic Status", ["Low", "Middle", "High"])
 
 # ------------- SYMPTOMS -------------
 with tabs[1]:
     chest_pain = st.selectbox("Chest Pain Character", ["Typical", "Atypical", "None"])
-    dyspnea = st.checkbox("Dyspnea")
-    fatigue = st.checkbox("Fatigue")
-    nausea = st.checkbox("Nausea")
+    dyspnea = st.checkbox("Dyspnea", value=False)
+    fatigue = st.checkbox("Fatigue", value=False)
+    nausea = st.checkbox("Nausea", value=False)
 
 # ------------- LAB RESULTS -------------
 with tabs[2]:
-    trop = st.number_input("Troponin (ng/mL)", 0.0, 10.0, value=None, placeholder="Enter value")
-    crp = st.number_input("CRP (mg/L)", 0.0, 100.0, value=None, placeholder="Enter value")
-    bnp = st.number_input("BNP", 0.0, 2000.0, value=None, placeholder="Enter value")
-    hdl = st.number_input("HDL", 0.0, 100.0, value=None, placeholder="Enter value")
-    ldl = st.number_input("LDL", 0.0, 250.0, value=None, placeholder="Enter value")
+    trop = st.text_input("Troponin (ng/mL)", placeholder="Enter value or leave blank")
+    crp = st.text_input("CRP (mg/L)", placeholder="Enter value or leave blank")
+    bnp = st.text_input("BNP", placeholder="Enter value or leave blank")
+    hdl = st.text_input("HDL", placeholder="Enter value or leave blank")
+    ldl = st.text_input("LDL", placeholder="Enter value or leave blank")
+
+    # convert to float if not empty
+    def parse_float(x):
+        try:
+            return float(x) if x.strip() != "" else np.nan
+        except:
+            return np.nan
+
+    trop = parse_float(trop)
+    crp = parse_float(crp)
+    bnp = parse_float(bnp)
+    hdl = parse_float(hdl)
+    ldl = parse_float(ldl)
 
 # ------------- ECG -------------
 with tabs[3]:
-    st_depression = st.checkbox("ECG ST Depression")
-    t_neg = st.checkbox("T-wave Negativity")
-    q_wave = st.checkbox("Q Waves")
+    st_depression = st.checkbox("ECG ST Depression", value=False)
+    t_neg = st.checkbox("T-wave Negativity", value=False)
+    q_wave = st.checkbox("Q Waves", value=False)
 
 # ------------- IMAGING -------------
 with tabs[4]:
-    ef = st.number_input("Ejection Fraction (%)", 10.0, 80.0, 55.0)
-    mri_t2 = st.number_input("MRI_T2 (signal intensity)", 0.0, 10.0, 2.0)
-    mri_lge = st.number_input("MRI_LGE (fibrosis %)", 0.0, 100.0, 15.0)
+    ef = st.text_input("Ejection Fraction (%)", placeholder="Enter value or leave blank")
+    mri_t2 = st.text_input("MRI_T2 (signal intensity)", placeholder="Enter value or leave blank")
+    mri_lge = st.text_input("MRI_LGE (fibrosis %)", placeholder="Enter value or leave blank")
+
+    ef = parse_float(ef)
+    mri_t2 = parse_float(mri_t2)
+    mri_lge = parse_float(mri_lge)
 
 # ------------- RISK FACTORS -------------
 with tabs[5]:
-    dm = st.checkbox("Diabetes Mellitus (DM)")
-    ht = st.checkbox("Hypertension (HT)")
-    hl = st.checkbox("Hyperlipidemia (HL)")
-    smoker = st.checkbox("Smoking History")
+    dm = st.checkbox("Diabetes Mellitus (DM)", value=False)
+    ht = st.checkbox("Hypertension (HT)", value=False)
+    hl = st.checkbox("Hyperlipidemia (HL)", value=False)
+    smoker = st.checkbox("Smoking History", value=False)
+
 
 # ------------- SUBMIT -------------
 submitted = st.button("💡 Compute Uncertainty and Visualize")
