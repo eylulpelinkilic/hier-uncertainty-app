@@ -155,12 +155,20 @@ if submitted:
 
         if fill_choice == "No, stop the process":
             st.stop()
-        else:
+        elif fill_choice == "Yes, fill with mean values":
+            numeric_cols = df.select_dtypes(include=["float64", "int64"]).columns
             for f in missing_fields:
-                if f in df.columns:
-                    new_patient[f] = df[f].mean(numeric_only=True)
-            st.success(f"✅ Missing fields have been filled with mean values: {', '.join(missing_fields)}")
+                if f in numeric_cols:
+                    new_patient[f] = df[f].mean()
+            st.session_state.new_patient = new_patient
+            st.session_state.filled = True
+            st.success("✅ Missing values have been filled with column means.")
+            st.experimental_rerun()   # rerun once after filling
+        st.stop()
 
+    # if already filled or no missing values
+    if st.session_state.filled:
+        new_patient = st.session_state.new_patient
 
     # Run uncertainty pipeline on current dataset
     from hier_uncertainty import compute_uncertainty_matrix
