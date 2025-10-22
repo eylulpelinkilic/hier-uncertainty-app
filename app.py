@@ -113,7 +113,13 @@ with tabs[5]:
 submitted = st.button("💡 Compute Uncertainty and Visualize")
 
 if submitted:
-    # Build new patient dict (all required)
+    # --- initialize session state ---
+    if "new_patient" not in st.session_state:
+        st.session_state.new_patient = None
+    if "filled" not in st.session_state:
+        st.session_state.filled = False
+
+    # --- build patient dict ---
     new_patient = {
         "AGE": age,
         "TROPONIN": trop,
@@ -134,23 +140,23 @@ if submitted:
         "ECG_ST_depression": int(st_depression),
         "ECG_T_neg": int(t_neg),
         "ECG_Q_waves": int(q_wave),
-        "CONFIRMED DIAGNOSIS": np.nan  
+        "CONFIRMED DIAGNOSIS": np.nan
     }
 
     missing_fields = [
         k for k, v in new_patient.items()
-        if k != "CONFIRMED DIAGNOSIS"  # ignore label
+        if k != "CONFIRMED DIAGNOSIS"
         and (v is None or (isinstance(v, (int, float)) and np.isnan(v)))
-        ]
+    ]
 
-
-    # to validate if user wants to fill missing values by mean
-    if missing_fields:
+    # ---- mean fill logic ----
+    if missing_fields and not st.session_state.filled:
         st.warning(f"⚠️ Some values are missing: {', '.join(missing_fields)}")
         fill_choice = st.radio(
             "Do you want to fill missing values with the feature mean?",
             ("No, stop the process", "Yes, fill with mean values"),
-            horizontal=True
+            horizontal=True,
+            key="fill_radio"
         )
 
         if fill_choice == "No, stop the process":
@@ -162,27 +168,21 @@ if submitted:
                     new_patient[f] = df[f].mean()
             st.session_state.new_patient = new_patient
             st.session_state.filled = True
-            st.success("✅ Missing values have been filled with column means.")
-            st.experimental_rerun()   # rerun once after filling
+            st.success("✅ Missing values filled with column means.")
         st.stop()
 
-    # if already filled or no missing values
+    # if already filled, use the stored dict
     if st.session_state.filled:
         new_patient = st.session_state.new_patient
 
-    # Run uncertainty pipeline on current dataset
+    # ---- pipeline ----
     from hier_uncertainty import compute_uncertainty_matrix
-
-    # compute_uncertainty_matrix returns (uncertainty_matrix, meta, num_cols)
-    X_train, meta_train, num_cols = compute_uncertainty_matrix(df, label_col="CONFIRMED DIAGNOSIS", lam=params["lambda"], eps=params["eps"], bins=params["bins"])
+    X_train, meta_train, num_cols = compute_uncertainty_matrix(
+        df, label_col="CONFIRMED DIAGNOSIS",
+        lam=params["lambda"], eps=params["eps"], bins=params["bins"]
+    )
     df_train = df
 
-    # Fill missing features with class means
-    for f in num_cols:
-        if f not in new_patient:
-            new_patient[f] = df_train[f].mean()
-
-    # -------------- Eq.(8) uncertainty computation --------------
     st.info("Computing uncertainty using Eq.(8):  x_pf = H_f * z_pf / (D_JS + ε)")
 
     xp_f = []
@@ -190,12 +190,10 @@ if submitted:
         z_pf = (new_patient[f] - df_train[f].mean()) / (df_train[f].std() + 1e-9)
         H_f = entropy(np.histogram(df_train[f].values, bins=20)[0])
         D_JS = meta_train[f]["D_top"] if f in meta_train else 1e-9
-        xp_val = H_f * z_pf / (D_JS + 1e-6)
-        xp_f.append(xp_val)
-
+        xp_f.append(H_f * z_pf / (D_JS + 1e-6))
     xp_f = np.array(xp_f).reshape(1, -1)
 
-    # --- standardize and project ---
+    # --- standardize & project ---
     X_train_std = (X_train - np.nanmean(X_train, axis=0)) / (np.nanstd(X_train, axis=0) + 1e-9)
     xp_f_std = (xp_f - np.nanmean(X_train, axis=0)) / (np.nanstd(X_train, axis=0) + 1e-9)
 
@@ -203,33 +201,25 @@ if submitted:
     nn = NearestNeighbors(n_neighbors=1).fit(X_train_std)
     _, idx = nn.kneighbors(xp_f_std)
 
-    # --- compute t-SNE embedding for visualization ---
+
     from sklearn.manifold import TSNE
 
-    
+
     X_train_emb = compute_tsne(X_train_std, params["perplexity"])
     new_pt_emb = X_train_emb[idx.flatten()]
 
-
-    # --- visualization (Colab-style diagnostic landscape) ---
+    # ---- visualize ----
     fig = plot_diagnostic_landscape(df_train, X_train_emb, label_col="CONFIRMED DIAGNOSIS")
     ax = plt.gca()
-    # Eğer grafik üzerinde zaten bir "New Patient" varsa, tekrar çizme
-    existing_labels = [t.get_text() for t in ax.texts] + [h.get_label() for h in ax.legend_.texts] if ax.legend_ else []
-    if "New Patient (Eq.8)" not in existing_labels:
-        ax.scatter(new_pt_emb[0,0], new_pt_emb[0,1],
-                s=220, color="black", marker="*", edgecolor="white", linewidth=1.2,
-                label="New Patient (Eq.8)")
+    ax.scatter(
+        new_pt_emb[0, 0], new_pt_emb[0, 1],
+        s=220, color="black", marker="*", edgecolor="white", linewidth=1.2,
+        label="New Patient (Eq.8)"
+    )
     ax.legend()
     st.pyplot(fig)
 
-    ax.scatter(new_pt_emb[0,0], new_pt_emb[0,1],
-           s=220, color="black", marker="*", edgecolor="white", linewidth=1.2,
-           label="New Patient (Eq.8)")
+
 
     st.success("✅ New patient added and projected into diagnostic landscape.")
     st.caption("Feature-level uncertainty computed per Eq.(8) — entropy * atypicality * divergence weighting.")
-
-
-
-
