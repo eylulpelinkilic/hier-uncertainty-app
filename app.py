@@ -175,6 +175,11 @@ if submitted:
     if st.session_state.filled:
         new_patient = st.session_state.new_patient
 
+    df_train = df.copy()
+    for c in df_train.select_dtypes(include=["object"]).columns:
+        df_train[c] = pd.to_numeric(df_train[c], errors="coerce")
+
+
     # ---- pipeline ----
     from hier_uncertainty import compute_uncertainty_matrix
     X_train, meta_train, num_cols = compute_uncertainty_matrix(
